@@ -1,0 +1,76 @@
+/*
+ * @Author: 朽木白
+ * @Date: 2023-03-15 10:16:59
+ * @LastEditors: 1547702880@@qq.com
+ * @LastEditTime: 2023-03-15 14:33:18
+ * @Description: 修改element默认的样式
+ */
+
+.el-table {
+  flex: 1;
+
+  table {
+    width: 100%;
+  }
+
+  .el-table__header th {
+    font-weight: bold;
+    color: var(--el-text-color-primary);
+    background: var(--el-fill-color-light) !important;
+  }
+}
+
+// * el-drawer 样式
+.el-drawer {
+  .el-drawer__header {
+    padding: 15px 20px 14px;
+    margin-bottom: 0;
+    border-bottom: 1px solid var(--el-border-color-lighter);
+
+    span {
+      font-size: 17px;
+      color: var(--el-text-color-primary) !important;
+    }
+  }
+
+  .el-drawer__footer {
+    border-top: 1px solid var(--el-border-color-lighter);
+  }
+
+  span {
+    font-size: 14px;
+    color: var(--el-text-color-primary) !important;
+  }
+
+  // drawer select 样式
+  .el-select {
+    width: 100%;
+  }
+
+  // drawer-form 中存在两列 form-item
+  .drawer-multiColumn-form {
+    display: flex;
+    flex-wrap: wrap;
+
+    .el-form-item {
+      width: 47%;
+
+      &:nth-child(2n-1) {
+        margin-right: 5%;
+      }
+    }
+  }
+}
+
+// * el-dialog 样式
+.el-dialog {
+  .el-dialog__header {
+    padding: 15px 20px;
+    margin: 0;
+    border-bottom: 1px solid var(--el-border-color-lighter);
+
+    .el-dialog__title {
+      font-size: 17px;
+    }
+  }
+}

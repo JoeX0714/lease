@@ -1,0 +1,84 @@
+.login-container {
+  height: 100vh;
+  background: url('@/assets/images/background.jpg') center center fixed
+    no-repeat;
+  background-size: cover;
+
+  .form-header {
+    margin-bottom: 40px;
+
+    .title-tips {
+      margin-top: 29px;
+      font-size: 26px;
+      font-weight: 400;
+      color: var(--el-color-white);
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .title {
+      font-size: 54px;
+      font-weight: 500;
+      color: var(--el-color-white);
+    }
+  }
+
+  .login-form {
+    position: relative;
+    max-width: 100%;
+    padding: 4.5vh;
+    margin: calc(50vh - 277.5px) 5vw 5vw;
+    overflow: hidden;
+    background: url('@/assets/images/login_form.png');
+    background-size: 100% 100%;
+
+    .login-btn {
+      display: inherit;
+      width: 100%;
+      height: 48px;
+      margin-top: 5px;
+      border: 0;
+
+      &:hover {
+        opacity: 0.9;
+      }
+    }
+  }
+
+  :deep(.el-form) {
+    .el-form-item {
+      padding-right: 0;
+      margin: 20px 0;
+      color: #454545;
+      border: 1px solid transparent;
+      border-radius: 2px;
+
+      &__content {
+        min-height: $base-input-height;
+        line-height: $base-input-height;
+      }
+
+      &__error {
+        position: absolute;
+        top: 100%;
+        left: 18px;
+        font-size: $base-font-size-small;
+        line-height: 18px;
+        color: $base-color-red;
+      }
+    }
+
+    .el-input {
+      box-sizing: border-box;
+
+      input {
+        height: 48px;
+        font-size: $base-font-size-default;
+        line-height: 58px;
+        color: $base-font-color;
+        border: 0;
+        caret-color: $base-font-color;
+      }
+    }
+  }
+}
