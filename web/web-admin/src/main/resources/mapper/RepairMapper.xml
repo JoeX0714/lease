@@ -1,0 +1,72 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.atguigu.lease.web.admin.mapper.RepairMapper">
+
+    <select id="pageRepair" resultType="com.atguigu.lease.web.admin.vo.repair.RepairItemVo">
+        select ri.id,
+               ri.user_id,
+               ri.agreement_id,
+               ri.apartment_id,
+               ri.room_id,
+               ri.repair_content,
+               ri.status,
+               date_format(ri.create_time, '%Y-%m-%d %H:%i:%s') create_time_str,
+               ri.update_time,
+               ai.name apartment_name,
+               ri2.room_number,
+               ui.nickname user_name,
+               ui.phone user_phone
+        from repair_info ri
+                 left join apartment_info ai
+                           on ri.apartment_id = ai.id
+                               and ai.is_deleted = 0
+                 left join room_info ri2
+                           on ri.room_id = ri2.id
+                               and ri2.is_deleted = 0
+                 left join user_info ui
+                           on ri.user_id = ui.id
+                               and ui.is_deleted = 0
+        <where>
+            ri.is_deleted = 0
+            <if test="queryVo.name!=null and queryVo.name!=''">
+                and ui.nickname like concat('%',#{queryVo.name},'%')
+            </if>
+            <if test="queryVo.phone!=null and queryVo.phone!=''">
+                and ui.phone like concat('%',#{queryVo.phone},'%')
+            </if>
+        </where>
+        order by ri.create_time desc
+    </select>
+
+    <select id="getRepairById" resultType="com.atguigu.lease.web.admin.vo.repair.RepairItemVo">
+        select ri.id,
+               ri.user_id,
+               ri.agreement_id,
+               ri.apartment_id,
+               ri.room_id,
+               ri.repair_content,
+               ri.status,
+               date_format(ri.create_time, '%Y-%m-%d %H:%i:%s') create_time_str,
+               ri.update_time,
+               ai.name apartment_name,
+               ri2.room_number,
+               ui.nickname user_name,
+               ui.phone user_phone
+        from repair_info ri
+                 left join apartment_info ai
+                           on ri.apartment_id = ai.id
+                               and ai.is_deleted = 0
+                 left join room_info ri2
+                           on ri.room_id = ri2.id
+                               and ri2.is_deleted = 0
+                 left join user_info ui
+                           on ri.user_id = ui.id
+                               and ui.is_deleted = 0
+        where ri.is_deleted = 0
+          and ri.id = #{id}
+    </select>
+</mapper>
+
+

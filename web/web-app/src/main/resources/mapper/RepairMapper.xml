@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.atguigu.lease.web.app.mapper.RepairMapper">
+
+    <select id="listByUserId" resultType="com.atguigu.lease.web.app.vo.repair.RepairItemVo">
+        select ri.id,
+               ri.user_id,
+               ri.agreement_id,
+               ri.apartment_id,
+               ri.room_id,
+               ri.repair_content,
+               ri.status,
+               date_format(ri.create_time, '%Y-%m-%d %H:%i:%s') create_time_str,
+               ai.name apartment_name,
+               ri2.room_number
+        from repair_info ri
+                 left join apartment_info ai
+                           on ri.apartment_id = ai.id
+                               and ai.is_deleted = 0
+                 left join room_info ri2
+                           on ri.room_id = ri2.id
+                               and ri2.is_deleted = 0
+        where ri.is_deleted = 0
+          and ri.user_id = #{userId}
+        order by ri.create_time desc
+    </select>
+</mapper>

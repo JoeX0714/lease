@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.atguigu.lease.web.admin.mapper.ViewAppointmentMapper">
+
+    <resultMap id="AppointmentVo" type="com.atguigu.lease.web.admin.vo.appointment.AppointmentVo" autoMapping="true">
+        <id column="id" property="id"/>
+
+        <association property="apartmentInfo" javaType="com.atguigu.lease.model.entity.ApartmentInfo" autoMapping="true">
+            <id column="ai_id" property="id"/>
+
+            <result column="ai_name" property="name"/>
+            <result column="ai_phone" property="phone"/>
+        </association>
+    </resultMap>
+
+    <select id="pageAppointment" resultMap="AppointmentVo">
+        select va.id ,
+               va.user_id,
+               va.name,
+               va.phone,
+               va.apartment_id,
+               va.appointment_time,
+               va.additional_info,
+               va.appointment_status,
+               ai.id ai_id,
+               ai.name ai_name,
+               ai.introduction,
+               ai.district_id,
+               ai.district_name,
+               ai.city_id,
+               ai.city_name,
+               ai.province_id,
+               ai.province_name,
+               ai.address_detail,
+               ai.latitude,
+               ai.longitude,
+               ai.phone ai_phone,
+               ai.is_release
+        from view_appointment va
+                 left join apartment_info ai
+                           on va.apartment_id = ai.id
+                               and ai.is_deleted = 0
+        <where>
+            va.is_deleted=0
+            <if test="queryVo.provinceId!=null">
+                and ai.province_id=#{queryVo.provinceId}
+            </if>
+
+            <if test="queryVo.cityId != null">
+                and ai.city_id = #{queryVo.cityId}
+            </if>
+
+            <if test="queryVo.districtId != null">
+                and ai.district_id = #{queryVo.districtId}
+            </if>
+
+            <if test="queryVo.apartmentId != null">
+                and va.apartment_id = #{queryVo.apartmentId}
+            </if>
+
+            <if test="queryVo.name!=null and queryVo.name!=''">
+                and va.name like concat('%',#{queryVo.name},'%')
+            </if>
+
+            <if test="queryVo.phone!=null and queryVo.phone!=''">
+                and va.phone like concat('%',#{queryVo.phone},'%')
+            </if>
+        </where>
+    </select>
+</mapper>

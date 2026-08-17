@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.atguigu.lease.web.admin.mapper.NotificationMapper">
+
+    <select id="countByUnique" resultType="int">
+        select count(*)
+        from notification_info
+        where is_deleted = 0
+          and user_id = #{userId}
+          and type = #{type}
+          and biz_type = #{bizType}
+          and biz_id = #{bizId}
+    </select>
+
+    <select id="countByUniqueToday" resultType="int">
+        select count(*)
+        from notification_info
+        where is_deleted = 0
+          and user_id = #{userId}
+          and type = #{type}
+          and biz_type = #{bizType}
+          and biz_id = #{bizId}
+          and date(create_time) = curdate()
+    </select>
+</mapper>

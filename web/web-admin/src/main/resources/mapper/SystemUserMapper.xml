@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.atguigu.lease.web.admin.mapper.SystemUserMapper">
+
+    <select id="pageSystemUser" resultType="com.atguigu.lease.web.admin.vo.system.user.SystemUserItemVo">
+        select su.id,
+               su.username,
+               su.name,
+               su.type,
+               su.phone,
+               su.avatar_url,
+               su.additional_info,
+               su.post_id,
+               su.status,
+               sp.name post_name
+        from system_user su
+                 left join system_post sp
+                           on su.post_id = sp.id
+                               and sp.is_deleted = 0
+        <where>
+            su.is_deleted=0
+            <if test="queryVo.name!=null and queryVo.name!=''">
+                and su.name like concat('%',#{queryVo.name},'%')
+            </if>
+
+            <if test="queryVo.phone!=null and queryVo.phone!=''">
+                and su.phone like concat('%',#{queryVo.phone},'%')
+            </if>
+        </where>
+    </select>
+    <select id="selectOneByUsername" resultType="com.atguigu.lease.model.entity.SystemUser">
+        select id,
+               username,
+               password,
+               name,
+               type,
+               phone,
+               avatar_url,
+               additional_info,
+               post_id,
+               status
+        from system_user
+        where is_deleted = 0
+          and username = #{username}
+    </select>
+</mapper>

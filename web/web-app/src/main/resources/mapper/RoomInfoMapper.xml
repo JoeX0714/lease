@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.atguigu.lease.web.app.mapper.RoomInfoMapper">
+
+    <resultMap id="RoomItemVoMap" type="com.atguigu.lease.web.app.vo.room.RoomItemVo" autoMapping="true">
+        <id property="id" column="id"/>
+        <association property="apartmentInfo" javaType="com.atguigu.lease.model.entity.ApartmentInfo"
+                     autoMapping="true">
+            <id column="apartment_id" property="id"/>
+        </association>
+
+        <collection property="graphVoList" ofType="com.atguigu.lease.web.app.vo.graph.GraphVo"
+                    select="selectGraphVoListByRoomId" column="id"/>
+
+        <collection property="labelInfoList" ofType="com.atguigu.lease.model.entity.LabelInfo"
+                    select="selectLabelInfoListByRoomId" column="id"/>
+
+    </resultMap>
+
+    <!-- 根据条件查询房间列表以及公寓信息 -->
+    <select id="pageItem" resultMap="RoomItemVoMap">
+        select ri.id,
+        ri.room_number,
+        ri.rent,
+        ai.id apartment_id,
+        ai.name,
+        ai.introduction,
+        ai.district_id,
+        ai.district_name,
+        ai.city_id,
+        ai.city_name,
+        ai.province_id,
+        ai.province_name,
+        ai.address_detail,
+        ai.latitude,
+        ai.longitude,
+        ai.phone,
+        ai.is_release
+        from room_info ri
+        left join apartment_info ai
+        on ri.apartment_id = ai.id
+        and ai.is_deleted = 0
+        <where>
+            ri.is_deleted=0
+            and ri.is_release=1
+            and ri.id not in(
+            select room_id from lease_agreement
+            where is_deleted=0 and status in(1,2,5,7)
+            )
+            <if test="queryVo.provinceId!=null">
+                and ai.province_id=#{queryVo.provinceId}
+            </if>
+
+            <if test="queryVo.cityId!=null">
+                and ai.city_id=#{queryVo.cityId}
+            </if>
+
+            <if test="queryVo.districtId!=null">
+                and ai.district_id=#{queryVo.districtId}
+            </if>
+
+            <if test="queryVo.districtName!=null and queryVo.districtName!=''">
+                and ai.district_name like concat('%', #{queryVo.districtName}, '%')
+            </if>
+
+            <if test="queryVo.apartmentName!=null and queryVo.apartmentName!=''">
+                and ai.name like concat('%', #{queryVo.apartmentName}, '%')
+            </if>
+
+            <if test="queryVo.roomNumber!=null and queryVo.roomNumber!=''">
+                and ri.room_number like concat('%', #{queryVo.roomNumber}, '%')
+            </if>
+
+            <if test="queryVo.keyword!=null and queryVo.keyword!=''">
+                and (
+                    ai.name like concat('%', #{queryVo.keyword}, '%')
+                    or ai.introduction like concat('%', #{queryVo.keyword}, '%')
+                    or ai.address_detail like concat('%', #{queryVo.keyword}, '%')
+                    or ai.district_name like concat('%', #{queryVo.keyword}, '%')
+                    or ai.city_name like concat('%', #{queryVo.keyword}, '%')
+                    or ri.room_number like concat('%', #{queryVo.keyword}, '%')
+                )
+            </if>
+
+            <if test="queryVo.attrName!=null and queryVo.attrName!=''">
+                and ri.id in (
+                    select rav.room_id
+                    from room_attr_value rav
+                    join attr_value av on rav.attr_value_id = av.id and av.is_deleted = 0
+                    where rav.is_deleted = 0
+                    and av.name like concat('%', #{queryVo.attrName}, '%')
+                )
+            </if>
+
+            <if test="queryVo.facilityNames!=null and queryVo.facilityNames.size()>0">
+                <bind name="facilityCount" value="queryVo.facilityNames.size()"/>
+                and ri.id in (
+                    select rf.room_id
+                    from room_facility rf
+                    join facility_info fi on rf.facility_id = fi.id and fi.is_deleted = 0
+                    where rf.is_deleted = 0
+                    and
+                    <foreach collection="queryVo.facilityNames" item="facilityName" open="(" separator=" or " close=")">
+                        fi.name like concat('%', #{facilityName}, '%')
+                    </foreach>
+                    group by rf.room_id
+                    having count(distinct
+                        case
+                        <foreach collection="queryVo.facilityNames" item="facilityName">
+                            when fi.name like concat('%', #{facilityName}, '%') then #{facilityName}
+                        </foreach>
+                        end
+                    ) = #{facilityCount}
+                )
+            </if>
+
+            <if test="queryVo.labelNames!=null and queryVo.labelNames.size()>0">
+                and ri.id in (
+                    select rl.room_id
+                    from room_label rl
+                    join label_info li on rl.label_id = li.id and li.is_deleted = 0
+                    where rl.is_deleted = 0
+                    and
+                    <foreach collection="queryVo.labelNames" item="labelName" open="(" separator=" or " close=")">
+                        li.name like concat('%', #{labelName}, '%')
+                    </foreach>
+                )
+            </if>
+
+            <if test="queryVo.minRent!=null and queryVo.maxRent!=null">
+                and (ri.rent &gt;= #{queryVo.minRent} and ri.rent &lt;= #{queryVo.maxRent})
+            </if>
+
+            <if test="queryVo.minRent!=null and queryVo.maxRent==null">
+                and ri.rent &gt;= #{queryVo.minRent}
+            </if>
+
+            <if test="queryVo.minRent==null and queryVo.maxRent!=null">
+                and ri.rent &lt;= #{queryVo.maxRent}
+            </if>
+
+            <if test="queryVo.paymentTypeId!=null">
+                and ri.id in(
+                select room_id
+                from room_payment_type
+                where is_deleted=0
+                and payment_type_id=#{queryVo.paymentTypeId}
+                )
+            </if>
+        </where>
+
+        <choose>
+            <when test="queryVo.orderType!=null and queryVo.orderType.equals('asc')">
+                order by ri.rent asc
+            </when>
+
+            <when test="queryVo.orderType!=null and queryVo.orderType.equals('desc')">
+                order by ri.rent desc
+            </when>
+        </choose>
+    </select>
+
+    <!-- 根据房间ID查询图片列表 -->
+    <select id="selectGraphVoListByRoomId" resultType="com.atguigu.lease.web.app.vo.graph.GraphVo">
+        select name,
+               url
+        from graph_info
+        where is_deleted = 0
+          and item_type = 2
+          and item_id = #{id}
+    </select>
+
+    <!-- 根据房间ID查询标签列表 -->
+    <select id="selectLabelInfoListByRoomId" resultType="com.atguigu.lease.model.entity.LabelInfo">
+        select id,
+               type,
+               name
+        from label_info
+        where is_deleted = 0
+          and id in (select label_id
+                     from room_label
+                     where is_deleted = 0
+                       and room_id = #{id})
+    </select>
+    <select id="selectMinRentByApartmentId" resultType="java.math.BigDecimal">
+        select min(rent)
+        from room_info
+        where is_deleted = 0
+          and is_release = 1
+          and apartment_id = #{id}
+    </select>
+
+    <!-- 根据公寓id分页查询房间列表 -->
+    <select id="pageItemByApartmentId" resultMap="RoomItemVoMap">
+        select ri.id,
+               ri.room_number,
+               ri.rent,
+               ai.id apartment_id,
+               ai.name,
+               ai.introduction,
+               ai.district_id,
+               ai.district_name,
+               ai.city_id,
+               ai.city_name,
+               ai.province_id,
+               ai.province_name,
+               ai.address_detail,
+               ai.latitude,
+               ai.longitude,
+               ai.phone,
+               ai.is_release
+        from room_info ri
+                 left join apartment_info ai
+                           on ai.is_deleted = 0
+                               and ri.apartment_id = ai.id
+        where ai.id = #{id}
+          and ri.is_deleted = 0
+          and ri.is_release = 1
+          and ri.id not in (select room_id
+                            from lease_agreement
+                            where is_deleted = 0
+                              and status in (1, 2, 5, 7))
+    </select>
+
+</mapper>

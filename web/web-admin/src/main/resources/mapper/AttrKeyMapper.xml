@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.atguigu.lease.web.admin.mapper.AttrKeyMapper">
+
+    <resultMap id="AttrKeyVoMap" type="com.atguigu.lease.web.admin.vo.attr.AttrKeyVo">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+
+        <collection property="attrValueList"
+                    ofType="com.atguigu.lease.model.entity.AttrValue">
+
+            <id column="attr_value_id" property="id"/>
+
+            <result column="attr_value_name" property="name"/>
+
+            <result column="attr_key_id" property="attrKeyId"/>
+
+        </collection>
+    </resultMap>
+
+    <select id="listAttrInfo" resultMap="AttrKeyVoMap">
+        select k.id,
+               k.name,
+               v.id   attr_value_id,
+               v.name attr_value_name,
+               v.attr_key_id
+        from attr_key k
+                 left join attr_value v
+                           on k.id = v.attr_key_id and v.is_deleted = 0
+        where k.is_deleted = 0
+        /*如果两表都使用了逻辑删除，左连接的时候where中只能包含左表的逻辑删除过滤条件，这样才能保证
+          最终结果包含左表的全部数据，右表的逻辑删除放在on连接条件，这样连接时只有右表中未删除的数据才能和
+          左表关联上*/
+    </select>
+</mapper>

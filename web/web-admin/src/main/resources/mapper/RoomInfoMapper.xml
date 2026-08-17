@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.atguigu.lease.web.admin.mapper.RoomInfoMapper">
+
+    <resultMap id="RoomItemVoMap" type="com.atguigu.lease.web.admin.vo.room.RoomItemVo" autoMapping="true">
+        <id column="id" property="id"/>
+        <result column="is_release" property="isRelease"/>
+        <association property="apartmentInfo" javaType="com.atguigu.lease.model.entity.ApartmentInfo" autoMapping="true">
+            <id column="apar_id" property="id"/>
+
+            <result column="apar_is_release" property="isRelease"/>
+        </association>
+    </resultMap>
+
+    <select id="pageItem" resultMap="RoomItemVoMap">
+        select ri.id,
+               ri.room_number,
+               ri.rent,
+               ri.apartment_id,
+               ri.is_release,
+               ai.id apar_id,
+               ai.name,
+               ai.introduction,
+               ai.district_id,
+               ai.district_name,
+               ai.city_id,
+               ai.city_name,
+               ai.province_id,
+               ai.province_name,
+               ai.address_detail,
+               ai.latitude,
+               ai.longitude,
+               ai.phone,
+               ai.is_release apar_is_release,
+               la.lease_end_date,
+               la.room_id is not null isCheckIn
+        from room_info ri
+        left join apartment_info ai
+        on ri.apartment_id=ai.id
+        and ai.is_deleted=0
+        left join (select room_id, max(lease_end_date) lease_end_date
+                   from lease_agreement
+                   where is_deleted=0 and status in (2,5)
+                   group by room_id) la
+        on la.room_id=ri.id
+        <where>
+            ri.is_deleted=0
+            <if test="queryVo.provinceId!=null">
+                and ai.province_id=#{queryVo.provinceId}
+            </if>
+
+            <if test="queryVo.cityId!=null">
+                and ai.city_id=#{queryVo.cityId}
+            </if>
+
+            <if test="queryVo.districtId!=null">
+                and ai.district_id=#{queryVo.districtId}
+            </if>
+
+            <if test="queryVo.apartmentId!=null">
+                and ai.id=#{queryVo.apartmentId}
+            </if>
+        </where>
+    </select>
+</mapper>

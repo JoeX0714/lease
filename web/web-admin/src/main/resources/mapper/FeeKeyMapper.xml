@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.atguigu.lease.web.admin.mapper.FeeKeyMapper">
+
+    <resultMap id="FeeKeyVoMap" type="com.atguigu.lease.web.admin.vo.fee.FeeKeyVo">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+
+        <collection property="feeValueList" ofType="com.atguigu.lease.model.entity.FeeValue">
+            <id column="fee_value_id" property="id"/>
+
+            <result column="fee_value_name" property="name"/>
+
+            <result column="unit" property="unit"/>
+
+            <result column="fee_key_id" property="feeKeyId"/>
+        </collection>
+    </resultMap>
+
+    <select id="feeInfoList" resultMap="FeeKeyVoMap">
+        select k.id,
+               k.name,
+               v.id   fee_value_id,
+               v.name fee_value_name,
+               v.unit,
+               v.fee_key_id
+        from fee_key k
+                 left join fee_value v
+                           on k.id = v.fee_key_id and v.is_deleted = 0
+        where k.is_deleted = 0;
+    </select>
+</mapper>

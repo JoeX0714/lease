@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.atguigu.lease.web.app.mapper.LeaseTermMapper">
+
+    <select id="selectListByRoomId" resultType="com.atguigu.lease.model.entity.LeaseTerm">
+        select id,
+               month_count,
+               unit
+        from lease_term
+        where is_deleted = 0
+          and id in (select lease_term_id
+                     from room_lease_term
+                     where is_deleted = 0
+                       and room_id = #{id})
+    </select>
+</mapper>

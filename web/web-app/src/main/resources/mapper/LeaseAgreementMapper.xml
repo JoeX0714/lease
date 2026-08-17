@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.atguigu.lease.web.app.mapper.LeaseAgreementMapper">
+
+    <resultMap id="AgreementItemVoMap" type="com.atguigu.lease.web.app.vo.agreement.AgreementItemVo" autoMapping="true">
+        <id column="id" property="id"/>
+        <result column="room_id" property="roomId"/>
+
+        <collection property="roomGraphVoList" ofType="com.atguigu.lease.web.app.vo.graph.GraphVo" autoMapping="true" notNullColumn="url"/>
+    </resultMap>
+
+    <resultMap id="AgreementDetailVoMap" type="com.atguigu.lease.web.app.vo.agreement.AgreementDetailVo"
+               autoMapping="true">
+        <id property="id" column="id"/>
+        <result property="apartmentId" column="apartment_id"/>
+        <result property="roomId" column="room_id"/>
+
+        <collection property="apartmentGraphVoList" ofType="com.atguigu.lease.web.app.vo.graph.GraphVo"
+                    select="apartmentGraphVoList" column="apartment_id"/>
+
+        <collection property="roomGraphVoList" ofType="com.atguigu.lease.web.app.vo.graph.GraphVo"
+                    select="roomGraphVoList" column="room_id"/>
+    </resultMap>
+
+    <select id="listItemByPhone" resultMap="AgreementItemVoMap">
+        select la.id,
+               la.room_id,
+               la.lease_start_date,
+               la.lease_end_date,
+               la.rent,
+               la.status lease_status,
+               la.source_type,
+               ri.room_number,
+               ai.name apartment_name,
+               gi.name,
+               gi.url
+        from lease_agreement la
+                 left join room_info ri
+                           on la.room_id = ri.id
+                               and ri.is_deleted = 0
+                 left join apartment_info ai
+                           on ri.apartment_id = ai.id
+                               and ai.is_deleted = 0
+                 left join graph_info gi
+                           on gi.item_type = 2
+                               and gi.item_id = ri.id
+                               and gi.is_deleted = 0
+        where la.is_deleted = 0
+          and la.phone = #{phone}
+        order by case when la.status in (2, 5) then 0 else 1 end,
+                 case when la.status in (2, 5) then la.lease_end_date end asc,
+                 case when la.status not in (2, 5) then la.lease_end_date end desc,
+                 la.id desc
+    </select>
+
+    <select id="getDetailById" resultMap="AgreementDetailVoMap" >
+        select la.id,
+               la.phone,
+               la.name,
+               la.identification_number,
+               la.apartment_id,
+               la.room_id,
+               la.lease_start_date,
+               la.lease_end_date,
+               la.lease_term_id,
+               la.rent,
+               la.deposit,
+               la.payment_type_id,
+               la.status ,
+               la.source_type,
+               la.additional_info,
+               ai.name        apartment_name,
+               ri.room_number,
+               pt.name        payment_type_name,
+               lt.month_count lease_term_month_count,
+               lt.unit        lease_term_unit
+        from lease_agreement la
+                 left join apartment_info ai
+                           on la.apartment_id = ai.id
+                               and ai.is_deleted = 0
+                 left join room_info ri
+                           on la.room_id = ri.id
+                               and ri.is_deleted = 0
+                 left join payment_type pt
+                           on la.payment_type_id = pt.id
+                               and pt.is_deleted = 0
+                 left join lease_term lt
+                           on la.lease_term_id = lt.id
+                               and lt.is_deleted = 0
+        where la.is_deleted = 0
+        and la.id=#{id}
+    </select>
+
+    <select id="apartmentGraphVoList" resultType="com.atguigu.lease.web.app.vo.graph.GraphVo">
+        select name,
+               url
+        from graph_info
+        where is_deleted = 0
+          and item_type = 1
+          and item_id = #{apartment_id}
+    </select>
+
+    <select id="roomGraphVoList" resultType="com.atguigu.lease.web.app.vo.graph.GraphVo">
+        select name,
+               url
+        from graph_info
+        where is_deleted = 0
+          and item_type = 2
+          and item_id = #{room_id}
+    </select>
+</mapper>
